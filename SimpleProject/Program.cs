@@ -1,4 +1,4 @@
-using CQRS_lib.Data;
+using SimpleProject.Data;
 using Microsoft.EntityFrameworkCore;
 using SimpleProject.Models;
 

@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SimpleProject.Data.Models;
 
-namespace CQRS_lib.Data
+namespace SimpleProject.Data
 {
     public class AppDbContext : DbContext
     {
