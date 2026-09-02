@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SimpleProject.Data;
 using SimpleProject.Data.Models;
 using SimpleProject.Data.UnitOfWork;
 using SimpleProject.DTOs;
@@ -13,20 +11,16 @@ namespace SimpleProject.Controllers;
 public class ItemsController : ControllerBase
 {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly AppDbContext _db;
 
-    public ItemsController(IUnitOfWork unitOfWork, AppDbContext db)
+    public ItemsController(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
-        _db = db;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var items = await _db.Items
-            .Include(x => x.Category)
-            .ToListAsync();
+        var items = await _unitOfWork.Items.GetAllAsync(x => x.Category);
 
         return Ok(items.Select(x => new
         {
@@ -44,9 +38,7 @@ public class ItemsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var item = await _db.Items
-            .Include(x => x.Category)
-            .FirstOrDefaultAsync(x => x.Id == id);
+        var item = await _unitOfWork.Items.GetByIdAsync(id, x => x.Category);
 
         if (item == null)
             return NotFound();
