@@ -67,6 +67,11 @@ public class ItemsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(CreateItemDto dtoItem)
     {
+        var category = await _unitOfWork.Categories.GetByIdAsync(dtoItem.CategoryId);
+
+        if (category == null)
+            return BadRequest("Category does not exist.");
+
         string folderPath = Path.Combine(
             Directory.GetCurrentDirectory(),
             "wwwroot",
@@ -80,10 +85,13 @@ public class ItemsController : ControllerBase
 
         if (dtoItem.Image != null)
         {
-            string fileName = Guid.NewGuid().ToString() + Path.GetExtension(dtoItem.Image.FileName);
+            string fileName = Guid.NewGuid().ToString() +
+                              Path.GetExtension(dtoItem.Image.FileName);
+
             string filePath = Path.Combine(folderPath, fileName);
 
             using var stream = new FileStream(filePath, FileMode.Create);
+
             await dtoItem.Image.CopyToAsync(stream);
 
             imageUrl = "/images/" + fileName;
@@ -113,10 +121,53 @@ public class ItemsController : ControllerBase
         if (item == null)
             return NotFound();
 
+        var category = await _unitOfWork.Categories.GetByIdAsync(dtoItem.CategoryId);
+
+        if (category == null)
+            return BadRequest("Category does not exist.");
+
         item.Name = dtoItem.Name;
         item.Description = dtoItem.Description;
         item.Price = dtoItem.Price;
         item.CategoryId = dtoItem.CategoryId;
+
+        if (dtoItem.Image != null)
+        {
+            string folderPath = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "wwwroot",
+                "images"
+            );
+
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
+
+            if (!string.IsNullOrEmpty(item.ImageUrl))
+            {
+                string oldFilePath = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot",
+                    item.ImageUrl.TrimStart('/').Replace(
+                        "/",
+                        Path.DirectorySeparatorChar.ToString()
+                    )
+                );
+
+                if (System.IO.File.Exists(oldFilePath))
+                    System.IO.File.Delete(oldFilePath);
+            }
+
+            string fileName = Guid.NewGuid().ToString() +
+                              Path.GetExtension(dtoItem.Image.FileName);
+
+            string filePath = Path.Combine(folderPath, fileName);
+
+            using var stream = new FileStream(filePath, FileMode.Create);
+
+            await dtoItem.Image.CopyToAsync(stream);
+
+            item.ImageUrl = "/images/" + fileName;
+        }
 
         _unitOfWork.Items.Update(item);
         await _unitOfWork.SaveAsync();
@@ -131,6 +182,21 @@ public class ItemsController : ControllerBase
 
         if (item == null)
             return NotFound();
+
+        if (!string.IsNullOrEmpty(item.ImageUrl))
+        {
+            string filePath = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "wwwroot",
+                item.ImageUrl.TrimStart('/').Replace(
+                    "/",
+                    Path.DirectorySeparatorChar.ToString()
+                )
+            );
+
+            if (System.IO.File.Exists(filePath))
+                System.IO.File.Delete(filePath);
+        }
 
         _unitOfWork.Items.Delete(item);
         await _unitOfWork.SaveAsync();
