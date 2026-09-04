@@ -1,19 +1,26 @@
 using SimpleProject.Data;
 using Microsoft.EntityFrameworkCore;
+using SimpleProject.Data.UnitOfWork;
 using SimpleProject.Models;
+using SimpleProject.Extention;
+using Microsoft.AspNetCore.Identity;
+using SimpleProject.Data.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openap;
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(x => x
      .UseSqlServer(builder.Configuration.GetConnectionString("MyCon")));
-
+builder.Services.AddSwaggerGenJwtAuth();
+builder.Services.AddIdentity<AppUser, IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
+builder.Services.AddJwtAuthExtention(builder.Configuration);
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 
 var app = builder.Build();
@@ -27,6 +34,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
