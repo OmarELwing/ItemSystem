@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SimpleProject.Data.Models;
 using SimpleProject.Data.UnitOfWork;
@@ -16,6 +17,7 @@ namespace SimpleProject.Controllers
         {
             _unitOfWork = unitOfWork;
         }
+        [Authorize]
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
@@ -30,7 +32,7 @@ namespace SimpleProject.Controllers
 
             return Ok(result);
         }
-
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -47,7 +49,7 @@ namespace SimpleProject.Controllers
 
             return Ok(result);
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Create(CreateCategoryDto dto)
         {
@@ -61,7 +63,7 @@ namespace SimpleProject.Controllers
 
             return Ok(category);
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, CreateCategoryDto dto)
         {
@@ -77,7 +79,7 @@ namespace SimpleProject.Controllers
 
             return Ok(category);
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

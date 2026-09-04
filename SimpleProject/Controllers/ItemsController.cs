@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SimpleProject.Data.Models;
 using SimpleProject.Data.UnitOfWork;
 using SimpleProject.DTOs;
@@ -16,7 +17,7 @@ public class ItemsController : ControllerBase
     {
         _unitOfWork = unitOfWork;
     }
-
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -34,7 +35,7 @@ public class ItemsController : ControllerBase
             x.CreatedAt
         }));
     }
-
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -55,7 +56,7 @@ public class ItemsController : ControllerBase
             item.CreatedAt
         });
     }
-
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<IActionResult> Create(CreateItemDto dtoItem)
     {
@@ -102,9 +103,18 @@ public class ItemsController : ControllerBase
         await _unitOfWork.Items.AddAsync(item);
         await _unitOfWork.SaveAsync();
 
-        return Ok(item);
+        return Ok(new ItemDto
+        {
+            Id = item.Id,
+            Name = item.Name,
+            Description = item.Description,
+            Price = item.Price,
+            ImageUrl = item.ImageUrl,
+            CategoryName = category.Name,
+            CreatedAt = item.CreatedAt
+        });
     }
-
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, CreateItemDto dtoItem)
     {
@@ -166,7 +176,7 @@ public class ItemsController : ControllerBase
 
         return Ok(item);
     }
-
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
