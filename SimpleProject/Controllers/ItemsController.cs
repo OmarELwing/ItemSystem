@@ -174,7 +174,16 @@ public class ItemsController : ControllerBase
         _unitOfWork.Items.Update(item);
         await _unitOfWork.SaveAsync();
 
-        return Ok(item);
+        return Ok(new ItemDto
+        {
+            Id = item.Id,
+            Name = item.Name,
+            Description = item.Description,
+            Price = item.Price,
+            ImageUrl = item.ImageUrl,
+            CategoryName = category.Name,
+            CreatedAt = item.CreatedAt
+        }); ;
     }
     [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]

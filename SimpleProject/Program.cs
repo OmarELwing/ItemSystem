@@ -1,10 +1,11 @@
-using SimpleProject.Data;
-using Microsoft.EntityFrameworkCore;
-using SimpleProject.Data.UnitOfWork;
-using SimpleProject.Models;
-using SimpleProject.Extention;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using SimpleProject.Data;
 using SimpleProject.Data.Models;
+using SimpleProject.Data.Seed;
+using SimpleProject.Data.UnitOfWork;
+using SimpleProject.Extention;
+using SimpleProject.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,5 +39,23 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider
+        .GetRequiredService<AppDbContext>();
+
+    await dbContext.Database.MigrateAsync();
+
+    var userManager = scope.ServiceProvider
+        .GetRequiredService<UserManager<AppUser>>();
+
+    var roleManager = scope.ServiceProvider
+        .GetRequiredService<RoleManager<IdentityRole>>();
+
+    await IdentitySeeder.SeedAsync(
+        userManager,
+        roleManager,
+        builder.Configuration);
+}
 
 app.Run();
